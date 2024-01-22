@@ -1,12 +1,13 @@
 import { withPageAuthRequired } from '@auth0/nextjs-auth0'
 import { AppLayout } from '../../components/AppLayout'
 import { useState } from 'react'
+import { useRouter } from 'next/router'
+import { getAppProps } from '../../utils/getAppProps'
 
 export default function NewPost() {
   const [topic, setTopic] = useState('')
   const [keywords, setKeywords] = useState('')
-  const [postContent, setPostContent] = useState('')
-
+  const router = useRouter()
   const handleSubmit = async (e) => {
     e.preventDefault()
     const response = await fetch(`/api/generatePost`, {
@@ -18,12 +19,15 @@ export default function NewPost() {
     })
 
     const json = await response.json()
-    setPostContent(json.post.postContent)
+    console.log('RESULT', json)
+    if (json?.postId) {
+      router.push(`/post/${json.postId}`)
+    }
   }
 
   return (
     <div className='w-screen h-screen overflow-hidden flex justify-center items-center relative'>
-      <div className='relative z-10 text-slate-699 px-20 py-5 text-center max-w-screen-sm bg-white rounded-md backdrop-blur-sm'>
+      <div className='relative z-10 px-20 py-5 text-center max-w-screen-sm bg-slate-500 rounded-md backdrop-blur-sm'>
         <form onSubmit={handleSubmit}>
           <div>
             <label>
@@ -49,11 +53,6 @@ export default function NewPost() {
             Generate
           </button>
         </form>
-
-        <div
-          className='max-w-screen-sm p-10'
-          dangerouslySetInnerHTML={{ __html: postContent }}
-        />
       </div>
     </div>
   )
@@ -63,8 +62,11 @@ NewPost.getLayout = function getLayout(page, pageProps) {
   return <AppLayout {...pageProps}>{page}</AppLayout>
 }
 
-export const getServerSideProps = withPageAuthRequired(() => {
-  return {
-    props: {},
-  }
+export const getServerSideProps = withPageAuthRequired({
+  async getServerSideProps(ctx) {
+    const props = await getAppProps(ctx)
+    return {
+      props,
+    }
+  },
 })
