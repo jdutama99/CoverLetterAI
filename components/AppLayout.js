@@ -1,12 +1,34 @@
-import { useUser } from '@auth0/nextjs-auth0/client'
-import Link from 'next/link'
-import Image from 'next/image'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCoins } from '@fortawesome/free-solid-svg-icons'
-import Logo from './Logo/Logo'
+import { useUser } from '@auth0/nextjs-auth0/client';
+import Link from 'next/link';
+import Image from 'next/image';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCoins } from '@fortawesome/free-solid-svg-icons';
+import Logo from './Logo/Logo';
+import { useContext, useEffect } from 'react';
+import PostContext from '../context/postContext';
 
-export const AppLayout = ({ children, availableTokens, posts, postId }) => {
-  const { user } = useUser()
+export const AppLayout = ({
+  children,
+  availableTokens,
+  posts: postsFromSSR,
+  postId,
+  postCreated,
+}) => {
+  const { user } = useUser();
+
+  const { setPostsFromSSR, posts, getPosts, noMorePosts } =
+    useContext(PostContext);
+
+  useEffect(() => {
+    setPostsFromSSR(postsFromSSR);
+    if (postId) {
+      const exists = postsFromSSR.find((post) => post._id === postId);
+      if (!exists) {
+        getPosts({ getNewerPosts: true, lastPostDate: postCreated });
+      }
+    }
+  }, [postsFromSSR, setPostsFromSSR, postId, postCreated, getPosts]);
+
   return (
     <div className='grid grid-cols-[300px_1fr] h-screen max-h-screen'>
       <div className='flex flex-col text-white overflow-hidden'>
@@ -32,7 +54,18 @@ export const AppLayout = ({ children, availableTokens, posts, postId }) => {
               {post.topic}
             </Link>
           ))}
+          {!noMorePosts && (
+            <div
+              onClick={() => {
+                getPosts({ lastPostDate: posts[posts.length - 1].created });
+              }}
+              className='hover:underline text-sm text-slate-400  mt-4 text-center cursor-pointer'
+            >
+              Load More..
+            </div>
+          )}
         </div>
+
         <div className='bg-slate-800 flex items-center gap-2 border-t border-t-white h-20 px-2'>
           {!!user ? (
             <>
@@ -59,5 +92,5 @@ export const AppLayout = ({ children, availableTokens, posts, postId }) => {
       </div>
       {children}
     </div>
-  )
-}
+  );
+};

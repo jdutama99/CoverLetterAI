@@ -1,7 +1,7 @@
-import Image from 'next/image'
-import HeroImage from '../public/hero.webp'
-import Logo from '../components/Logo/Logo'
-import Link from 'next/link'
+import Image from 'next/image';
+import HeroImage from '../public/hero.webp';
+import Logo from '../components/Logo/Logo';
+import Link from 'next/link';
 
 export default function Home() {
   return (
@@ -18,5 +18,5 @@ export default function Home() {
         </Link>
       </div>
     </div>
-  )
+  );
 }
